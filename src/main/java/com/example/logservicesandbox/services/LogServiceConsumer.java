@@ -1,6 +1,7 @@
 package com.example.logservicesandbox.services;
 
 import com.example.logservicesandbox.domain.Log;
+import com.example.logservicesandbox.domain.LogDTO;
 import com.example.logservicesandbox.repository.LogRepository;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
@@ -25,9 +26,9 @@ public class LogServiceConsumer {
     KafkaMessageConverter kafkaMessageConverter;
 
     @KafkaListener(topics = "logs", groupId = "log_group_id")
-    public void consume(String logDTO) {
-        var logData = modelMapper.map(logDTO, Log.class);
-        System.err.println(logData);
+    public void consume(String logMessage) {
+        LogDTO logDTO= (LogDTO) kafkaMessageConverter.deserialize(logMessage, LogDTO.class);
+        Log logData = modelMapper.map(logDTO, Log.class);
         logData.setTime(LocalDateTime.now());
         logRepository.save(logData);
         log.info("new log: {}", logData);
